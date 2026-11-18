@@ -1,0 +1,29 @@
+{
+  "type": "response",
+  "message": "Map successful",
+  "payload": {
+    "url": "https://quotes.toscrape.com/",
+    "links": [
+      "https://quotes.toscrape.com/author/Albert-Einstein",
+      "https://quotes.toscrape.com/author/Jane-Austen"
+    ],
+    "count": 2,
+    "total": 47,
+    "summary": {
+      "/tag": 36,
+      "/author": 8,
+      "/": 1,
+      "/login": 1,
+      "/page": 1
+    },
+    "sources": {
+      "sitemap": 0,
+      "homepage": 47
+    },
+    "durationMs": 11110,
+    "geo": {
+      "country": null
+    }
+  },
+  "pagination": {}
+}

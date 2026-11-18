@@ -1,0 +1,76 @@
+{
+  "type": "response",
+  "message": "SERP successful",
+  "payload": {
+    "search_parameters": {
+      "engine": "google",
+      "q": "xml sitemap",
+      "search_type": "search",
+      "device": "desktop",
+      "country": "us",
+      "language": "en",
+      "page": 1
+    },
+    "search_metadata": {
+      "status": "Success",
+      "engine": "google",
+      "created_at": "2026-11-18T13:47:43.231Z",
+      "path": "http",
+      "paging": {
+        "requested_num": 20,
+        "page_size": 10,
+        "pages_planned": 2,
+        "pages_fetched": 2,
+        "results_merged": 3
+      }
+    },
+    "organic": [
+      {
+        "rank": 1,
+        "title": "What is an XML sitemap",
+        "link": "https://www.google.com/url?q=EXAMPLE_TOKEN_1&sa=U",
+        "redirect_link": "https://www.google.com/url?q=EXAMPLE_TOKEN_1&sa=U",
+        "display_link": "cityhost.ua › Home › Blog",
+        "description": "A sitemap is a file in .xml format ..."
+      },
+      {
+        "rank": 2,
+        "title": "What Is an XML Sitemap? Full Guide",
+        "link": "https://storeownertips.com/glossary/xml-sitemap/",
+        "redirect_link": "https://www.google.com/url?q=EXAMPLE_TOKEN_2&sa=U",
+        "display_link": "storeownertips.com › Glossary Terms › X",
+        "source": "storeownertips.com",
+        "description": "An XML sitemap is a machine-readable file ..."
+      },
+      {
+        "rank": 3,
+        "title": "Sitemaps - Wikipedia",
+        "link": "https://www.google.com/url?q=EXAMPLE_TOKEN_3&sa=U",
+        "redirect_link": "https://www.google.com/url?q=EXAMPLE_TOKEN_3&sa=U",
+        "display_link": "en.wikipedia.org › wiki › Sitemaps",
+        "description": "Sitemaps is a protocol ..."
+      }
+    ],
+    "ads": [],
+    "people_also_ask": [],
+    "related_searches": [
+      {
+        "query": "xml sitemap generator"
+      }
+    ],
+    "ai_overview": "An XML sitemap is a structured text file that lists the important pages of a website.",
+    "pagination": {
+      "current": 1,
+      "next": 3,
+      "total_pages": null,
+      "other_pages": {},
+      "available_pages": [
+        1,
+        2,
+        3
+      ],
+      "has_next": true
+    }
+  },
+  "pagination": {}
+}

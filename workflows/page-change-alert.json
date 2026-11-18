@@ -1,0 +1,257 @@
+{
+  "name": "Page change alert (QuanticData)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Page change alert\nEvery 6 hours, scrapes each page to Markdown (links stripped to reduce noise), hashes the text, compares it with the previous run and posts a message to a webhook when a page changed. The first run only records a baseline.\n\n## Setup\n1. Create an API key on the QuanticData dashboard (API keys page).\n2. In n8n: Credentials > New > **Header Auth**. Name: `QuanticData API`, header name `Authorization`, value `Bearer YOUR_KEY`.\n3. Open each orange HTTP Request node and pick that credential.\n4. Edit **Settings** (pages, webhook URL).\n5. Activate the workflow: the hashes are kept in the workflow's static data, which n8n saves only for active (scheduled) runs.\n\nBilled per successful page: https://quanticdata.io/pricing/",
+        "height": 460,
+        "width": 520,
+        "color": 5
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -420
+      ],
+      "id": "c668f3e2-981e-4a7c-a1bb-c33f582b9149"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "name": "Every 6 hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        100
+      ],
+      "id": "a9236743-08a4-499c-a403-30b16b9ae269"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1cbd86a2-72c9-45cc-a269-f3e6009ca94d",
+              "name": "pages",
+              "value": "={{ [{ name: 'Example Domain', url: 'https://example.com/' }, { name: 'Books to Scrape: A Light in the Attic', url: 'https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html' }] }}",
+              "type": "array"
+            },
+            {
+              "id": "4c74c42e-88e5-47a8-a8df-2b37b4985054",
+              "name": "alertWebhookUrl",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        100
+      ],
+      "id": "1e7c53cd-9bf0-47bc-a0f3-a9a2d1501912"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "pages",
+        "options": {}
+      },
+      "name": "One item per page",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        440,
+        100
+      ],
+      "id": "f489676f-201d-4fae-a06e-87b8cd19350d"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.quanticdata.io/v1/scraper/extract",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"format\": \"markdown\",\n  \"contentMode\": \"smart\",\n  \"links_mode\": \"strip\",\n  \"images_mode\": \"strip\"\n}",
+        "options": {
+          "timeout": 180000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
+            }
+          }
+        }
+      },
+      "name": "Scrape page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "cbeca70a-25dc-4e0c-a367-1d995c4eb48f"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FNV-1a 32-bit hash: enough to notice a change, no crypto module needed\nfunction fnv1a(text) {\n  let h = 0x811c9dc5;\n  for (let i = 0; i < text.length; i++) {\n    h ^= text.charCodeAt(i);\n    h = Math.imul(h, 0x01000193) >>> 0;\n  }\n  return h.toString(16).padStart(8, '0');\n}\n\nconst pages = $('One item per page').all();\nconst store = $getWorkflowStaticData('global');\nstore.pages = store.pages || {};\n\nreturn $input.all().map((item, i) => {\n  const target = pages[i].json;\n  const page = item.json.payload;\n  const hash = fnv1a(page.content || '');\n  const before = store.pages[target.url];\n  store.pages[target.url] = { hash, checkedAt: new Date().toISOString() };\n  const changed = Boolean(before) && before.hash !== hash;\n  return {\n    json: {\n      name: target.name,\n      url: target.url,\n      status: page.status,\n      hash,\n      previous_hash: before ? before.hash : null,\n      changed,\n      message: changed ? 'Changed: ' + target.name + ' ' + target.url : 'Unchanged: ' + target.name,\n    },\n  };\n});"
+      },
+      "name": "Compare with last run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        100
+      ],
+      "id": "a1aeba8a-9318-405f-aaf8-486634d76aed"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4b1de006-0af3-42ed-a73e-84a3acf28e91",
+              "leftValue": "={{ $json.changed && $('Settings').first().json.alertWebhookUrl !== '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Changed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        100
+      ],
+      "id": "b516bf47-650c-46bb-ab95-6092318ce958"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.alertWebhookUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.message }) }}",
+        "options": {}
+      },
+      "name": "Send alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        80
+      ],
+      "id": "a3e33209-06c0-439c-a8ae-387fcec27b2b"
+    }
+  ],
+  "connections": {
+    "Every 6 hours": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "One item per page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One item per page": {
+      "main": [
+        [
+          {
+            "node": "Scrape page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape page": {
+      "main": [
+        [
+          {
+            "node": "Compare with last run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare with last run": {
+      "main": [
+        [
+          {
+            "node": "Changed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Changed?": {
+      "main": [
+        [
+          {
+            "node": "Send alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

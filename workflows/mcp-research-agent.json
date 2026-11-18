@@ -1,0 +1,134 @@
+{
+  "name": "Web research agent with the QuanticData MCP server",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Web research agent (QuanticData MCP server)\nA chat agent that answers questions from the live web: the n8n AI Agent uses the hosted QuanticData MCP server (search, scrape and map tools) through the MCP Client Tool node and cites the pages it read.\n\n## Setup\n1. Credentials > New > **Header Auth**: name `QuanticData MCP`, header `Authorization`, value `Bearer YOUR_KEY`. Select it in **QuanticData MCP**.\n2. Add your model credential to **Chat model** (any chat model node works in its place).\n3. Open the chat and ask a question.\n\nEach tool call the agent makes is billed like the matching API call: https://quanticdata.io/pricing/",
+        "height": 480,
+        "width": 540,
+        "color": 5
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -440
+      ],
+      "id": "f664fcf8-6b80-492e-ae2f-7c7966dbbcb1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        100
+      ],
+      "webhookId": "b1a23e99-7448-4d00-a309-cba5bbb15cc7",
+      "id": "0d26bca0-199c-4438-a75c-b62d309716fc"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You answer questions from the live web. Use the search tool to find sources, the scrape tool to read the most relevant pages (at most three per question) and the map tool only to find pages on one site. Answer briefly and list the URLs you used. If the pages do not answer the question, say so."
+        }
+      },
+      "name": "Research agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        260,
+        100
+      ],
+      "id": "7e72ee5c-10f3-475c-a6d0-79867b30afc1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "name": "Chat model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        340
+      ],
+      "id": "7dcf48d9-fba9-42f8-a9fe-af7247989c1f"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://api.quanticdata.io/mcp",
+        "serverTransport": "httpStreamable",
+        "authentication": "headerAuth",
+        "include": "selected",
+        "includeTools": [
+          "search",
+          "scrape",
+          "map"
+        ],
+        "options": {}
+      },
+      "name": "QuanticData MCP",
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        340
+      ],
+      "id": "1d29219c-1e1a-4109-a349-fb223a0aa931"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Research agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuanticData MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

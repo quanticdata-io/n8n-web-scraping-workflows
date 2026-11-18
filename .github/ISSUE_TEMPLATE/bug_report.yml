@@ -1,0 +1,33 @@
+name: Bug report
+description: A workflow fails to import, errors or returns the wrong data
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Never paste an API key. Replace it with `qd_live_...`. Remove personal data from any output you paste.
+  - type: dropdown
+    id: workflow
+    attributes:
+      label: Workflow
+      options:
+        - urls-to-markdown
+        - serp-rank-check
+        - google-maps-places-to-csv
+        - page-change-alert
+        - site-to-rag-chunks
+        - mcp-research-agent
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: n8n version and hosting
+      placeholder: n8n 1.x, self-hosted Docker / n8n Cloud
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Node that failed, error message, and what you expected
+    validations:
+      required: true

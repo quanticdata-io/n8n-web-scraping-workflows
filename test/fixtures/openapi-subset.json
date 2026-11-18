@@ -1,0 +1,475 @@
+{
+  "source": "https://quanticdata.io/docs/openapi.json",
+  "version": "2026-11-11",
+  "server": "https://api.quanticdata.io/v1",
+  "endpoints": {
+    "POST /scraper/extract": {
+      "requestFields": [
+        "actions",
+        "ai_prompt",
+        "ai_schema",
+        "app_state",
+        "autoEscalate",
+        "chunk",
+        "city",
+        "contentMode",
+        "content_modes",
+        "cookies",
+        "country",
+        "data_format",
+        "engine",
+        "expect",
+        "extract",
+        "format",
+        "formats",
+        "frontmatter",
+        "fullPage",
+        "headers",
+        "highlights",
+        "html",
+        "images_mode",
+        "include_links",
+        "links_mode",
+        "max_tokens",
+        "mobile",
+        "mode",
+        "output",
+        "parser",
+        "presetId",
+        "query",
+        "render",
+        "reveal_hidden",
+        "rotation",
+        "screenshot",
+        "scrollToBottom",
+        "sessionDuration",
+        "sessionId",
+        "state",
+        "summary_sections",
+        "tlsProfile",
+        "toc",
+        "url",
+        "waitForSelector",
+        "waitMs",
+        "xhr"
+      ],
+      "queryParams": []
+    },
+    "POST /scraper/serp": {
+      "requestFields": [
+        "accommodation_type",
+        "adults",
+        "arrival_id",
+        "browser",
+        "check_in_date",
+        "check_out_date",
+        "children_ages",
+        "country",
+        "currency",
+        "data_id",
+        "departure_id",
+        "device",
+        "engine",
+        "exact_matches",
+        "filter",
+        "free_cancellation",
+        "google_params",
+        "gps_coordinates",
+        "image_url",
+        "include_html",
+        "jobs",
+        "lang",
+        "location",
+        "next_page_token",
+        "nfpr",
+        "num",
+        "outbound_date",
+        "page",
+        "place_id",
+        "product_id",
+        "product_ids",
+        "query",
+        "render",
+        "return_date",
+        "safe",
+        "search_type",
+        "sort_by",
+        "start",
+        "uule",
+        "wait_for"
+      ],
+      "queryParams": []
+    },
+    "POST /scraper/serp/bulk": {
+      "requestFields": [
+        "browser",
+        "country",
+        "device",
+        "engine",
+        "google_params",
+        "lang",
+        "location",
+        "max_pages",
+        "nfpr",
+        "query",
+        "render",
+        "safe",
+        "search_type",
+        "uule",
+        "wait_for",
+        "webhook"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/serp/bulk/{jobId}": {
+      "requestFields": [],
+      "queryParams": [
+        "since"
+      ]
+    },
+    "DELETE /scraper/serp/bulk/{jobId}": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/map": {
+      "requestFields": [
+        "country",
+        "group_by",
+        "includeSubdomains",
+        "limit",
+        "search",
+        "sitemapOnly",
+        "url"
+      ],
+      "queryParams": []
+    },
+    "POST /scraper/crawl": {
+      "requestFields": [
+        "allowSubdomains",
+        "contentMode",
+        "country",
+        "depth",
+        "exclude",
+        "format",
+        "include",
+        "limit",
+        "render",
+        "sameDomain",
+        "url"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/crawl/{jobId}": {
+      "requestFields": [],
+      "queryParams": [
+        "include_content",
+        "since"
+      ]
+    },
+    "DELETE /scraper/crawl/{jobId}": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/batch": {
+      "requestFields": [
+        "concurrency",
+        "contentMode",
+        "country",
+        "engine",
+        "extract",
+        "format",
+        "fullPage",
+        "mode",
+        "render",
+        "urls",
+        "webhook"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/batch/{jobId}": {
+      "requestFields": [],
+      "queryParams": [
+        "include_content",
+        "since"
+      ]
+    },
+    "DELETE /scraper/batch/{jobId}": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "GET /scraper/cost": {
+      "requestFields": [],
+      "queryParams": [
+        "ai",
+        "kind",
+        "max_cost",
+        "proxy_type",
+        "render",
+        "units"
+      ]
+    },
+    "POST /scraper/unlock": {
+      "requestFields": [
+        "actions",
+        "autoRender",
+        "body",
+        "bodyBase64",
+        "cache_ttl",
+        "city",
+        "cookies",
+        "country",
+        "failOnBlock",
+        "fail_on_block",
+        "format",
+        "headers",
+        "keepHeaders",
+        "max_bytes",
+        "method",
+        "mobile",
+        "mode",
+        "render",
+        "returnCookies",
+        "rotation",
+        "sessionDuration",
+        "sessionId",
+        "state",
+        "successStatusCodes",
+        "tier",
+        "timeoutMs",
+        "timeout_ms",
+        "tlsProfile",
+        "url",
+        "waitForSelector",
+        "waitMs"
+      ],
+      "queryParams": []
+    },
+    "POST /scraper/unlock/batch": {
+      "requestFields": [
+        "concurrency",
+        "defaults",
+        "requests",
+        "tier",
+        "urls",
+        "webhook_url"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/unlock/batch/{batch_id}": {
+      "requestFields": [],
+      "queryParams": [
+        "include",
+        "limit",
+        "offset"
+      ]
+    },
+    "DELETE /scraper/unlock/batch/{batch_id}": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "GET /scraper/unlock/ca": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/ai": {
+      "requestFields": [
+        "task",
+        "url"
+      ],
+      "queryParams": []
+    },
+    "POST /scraper/places-ai": {
+      "requestFields": [
+        "country",
+        "enrich",
+        "max_enrich",
+        "task"
+      ],
+      "queryParams": []
+    },
+    "POST /scraper/shopping-ai": {
+      "requestFields": [
+        "country",
+        "task"
+      ],
+      "queryParams": []
+    },
+    "POST /scraper/ai-visibility": {
+      "requestFields": [
+        "brand",
+        "competitors",
+        "country",
+        "engines",
+        "no_bot_fetch",
+        "no_render",
+        "no_retrieval",
+        "offsite",
+        "queries",
+        "url"
+      ],
+      "queryParams": []
+    },
+    "POST /scraper/seo-audit": {
+      "requestFields": [
+        "country",
+        "no_render",
+        "url"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/collectors": {
+      "requestFields": [],
+      "queryParams": [
+        "category"
+      ]
+    },
+    "GET /scraper/collectors/{slug}": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/collectors/{slug}/run": {
+      "requestFields": [
+        "async",
+        "input",
+        "mode",
+        "wait"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/collectors/runs": {
+      "requestFields": [],
+      "queryParams": [
+        "cursor",
+        "limit",
+        "slug"
+      ]
+    },
+    "GET /scraper/collectors/runs/{runId}": {
+      "requestFields": [],
+      "queryParams": [
+        "format"
+      ]
+    },
+    "GET /scraper/datasets": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/datasets": {
+      "requestFields": [
+        "columns",
+        "country",
+        "limits",
+        "prompt",
+        "refresh",
+        "refreshUrls",
+        "sources",
+        "webhook"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/datasets/{jobId}": {
+      "requestFields": [],
+      "queryParams": [
+        "mode",
+        "since"
+      ]
+    },
+    "DELETE /scraper/datasets/{jobId}": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "GET /scraper/datasets/{jobId}/download": {
+      "requestFields": [],
+      "queryParams": [
+        "format"
+      ]
+    },
+    "PATCH /scraper/datasets/{jobId}/record": {
+      "requestFields": [
+        "name"
+      ],
+      "queryParams": []
+    },
+    "DELETE /scraper/datasets/{jobId}/record": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/parser/generate": {
+      "requestFields": [
+        "country",
+        "fields",
+        "html",
+        "prompt",
+        "render",
+        "url"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/parser/presets": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/parser/presets": {
+      "requestFields": [
+        "autoHeal",
+        "fields",
+        "name",
+        "parser",
+        "render",
+        "sourceUrl"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/parser/presets/{id}": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "PUT /scraper/parser/presets/{id}": {
+      "requestFields": [
+        "autoHeal",
+        "fields",
+        "name",
+        "parser",
+        "sourceUrl"
+      ],
+      "queryParams": []
+    },
+    "DELETE /scraper/parser/presets/{id}": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/parser/presets/{id}/heal": {
+      "requestFields": [
+        "force"
+      ],
+      "queryParams": []
+    },
+    "GET /scraper/parser/presets/{id}/stats": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "GET /scraper/usage": {
+      "requestFields": [],
+      "queryParams": [
+        "days"
+      ]
+    },
+    "GET /scraper/billing": {
+      "requestFields": [],
+      "queryParams": []
+    },
+    "POST /scraper/video": {
+      "requestFields": [
+        "end",
+        "frames",
+        "languages",
+        "max_frames",
+        "max_tokens",
+        "segments",
+        "start",
+        "url"
+      ],
+      "queryParams": []
+    }
+  }
+}

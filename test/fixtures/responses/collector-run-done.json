@@ -1,0 +1,77 @@
+{
+  "type": "response",
+  "message": "Collector run complete",
+  "payload": {
+    "run_id": "run_example_0001",
+    "slug": "google_maps_places",
+    "version": "1.1.0",
+    "status": "done",
+    "input": {
+      "query": "public library",
+      "country": "us",
+      "location": "Brooklyn, NY",
+      "max_results": 2
+    },
+    "count": 2,
+    "partial": false,
+    "cost": {
+      "usd": 0,
+      "unit_usd": 0.002,
+      "unit": "place",
+      "billed": false
+    },
+    "error": null,
+    "created_at": "2026-11-18T13:46:34.070Z",
+    "started_at": "2026-11-18T13:46:34.071Z",
+    "finished_at": "2026-11-18T13:46:35.139Z",
+    "results": [
+      {
+        "name": "Example Library 1",
+        "rank": 1,
+        "hours": "Wednesday: 9 AM–8 PM",
+        "phone": "(555) 010-0001",
+        "rating": 4.5,
+        "address": "1 Example Plaza, Springfield",
+        "data_id": "0x0000000000000000:0x0000000000000001",
+        "reviews": null,
+        "website": "library1.example",
+        "category": "Public library",
+        "found_by": "public library Brooklyn, NY",
+        "latitude": 40.68,
+        "longitude": -73.96,
+        "maps_url": "https://www.google.com/maps/search/?api=1&query=Example%20Library%201",
+        "place_id": "0x0000000000000000:0x0000000000000001",
+        "thumbnail": null,
+        "open_state": "Opens soon · 9 AM",
+        "description": null,
+        "price_level": null,
+        "weekly_hours": null,
+        "service_options": null
+      },
+      {
+        "name": "Example Library 2",
+        "rank": 2,
+        "hours": "Wednesday: 9 AM–8 PM",
+        "phone": "(555) 010-0002",
+        "rating": 4.5,
+        "address": "2 Example Plaza, Springfield",
+        "data_id": "0x0000000000000000:0x0000000000000002",
+        "reviews": null,
+        "website": "library2.example",
+        "category": "Public library",
+        "found_by": "public library Brooklyn, NY",
+        "latitude": 40.690000000000005,
+        "longitude": -73.96,
+        "maps_url": "https://www.google.com/maps/search/?api=1&query=Example%20Library%202",
+        "place_id": "0x0000000000000000:0x0000000000000002",
+        "thumbnail": null,
+        "open_state": "Opens soon · 9 AM",
+        "description": null,
+        "price_level": null,
+        "weekly_hours": null,
+        "service_options": null
+      }
+    ]
+  },
+  "pagination": {}
+}

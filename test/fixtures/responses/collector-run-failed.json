@@ -1,0 +1,30 @@
+{
+  "type": "response",
+  "message": "Collector run",
+  "payload": {
+    "run_id": "run_example_0001",
+    "slug": "google_maps_places",
+    "version": "1.1.0",
+    "status": "failed",
+    "input": {
+      "query": "public library",
+      "country": "us",
+      "location": "Brooklyn, NY",
+      "max_results": 2
+    },
+    "count": 0,
+    "partial": false,
+    "cost": {
+      "usd": 0,
+      "unit_usd": 0.002,
+      "unit": "place",
+      "billed": false
+    },
+    "error": "Example failure",
+    "created_at": "2026-11-18T13:46:34.070Z",
+    "started_at": null,
+    "finished_at": "2026-11-18T13:46:40.000Z",
+    "results": []
+  },
+  "pagination": {}
+}

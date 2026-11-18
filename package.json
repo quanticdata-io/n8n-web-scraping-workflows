@@ -1,0 +1,22 @@
+{
+  "name": "n8n-web-scraping-workflows",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Importable n8n workflows that call the QuanticData API with the core HTTP Request node.",
+  "license": "MIT",
+  "author": "QuanticData <hello@quanticdata.io>",
+  "homepage": "https://github.com/quanticdata-io/n8n-web-scraping-workflows#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quanticdata-io/n8n-web-scraping-workflows.git"
+  },
+  "bugs": "https://github.com/quanticdata-io/n8n-web-scraping-workflows/issues",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "openapi": "node scripts/extract-openapi.mjs openapi.json"
+  }
+}

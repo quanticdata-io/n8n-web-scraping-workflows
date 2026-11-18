@@ -1,0 +1,15 @@
+name: Workflow request
+description: A task you want a ready-made workflow for
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What should the workflow do, and with which data?
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Where should the result go?
+      placeholder: CSV file, Google Sheets, Slack, a database...
