@@ -1,0 +1,10 @@
+{
+  "type": "response",
+  "message": "Collector run queued",
+  "payload": {
+    "run_id": "run_example_0001",
+    "status": "queued",
+    "statusUrl": "/api/v1/scraper/collectors/runs/run_example_0001"
+  },
+  "pagination": {}
+}

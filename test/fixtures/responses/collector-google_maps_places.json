@@ -1,0 +1,41 @@
+{
+  "slug": "google_maps_places",
+  "version": "1.1.0",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 120
+      },
+      "location": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 120
+      },
+      "country": {
+        "type": "string",
+        "pattern": "^[A-Za-z]{2}$"
+      },
+      "lang": {
+        "type": "string"
+      },
+      "max_results": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 300,
+        "default": 20
+      },
+      "enrich_details": {
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "required": [
+      "query",
+      "location"
+    ],
+    "additionalProperties": false
+  }
+}

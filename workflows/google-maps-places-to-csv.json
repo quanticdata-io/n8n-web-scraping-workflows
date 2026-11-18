@@ -1,0 +1,291 @@
+{
+  "name": "Google Maps places to CSV (QuanticData)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Google Maps places to CSV\nRuns the QuanticData `google_maps_places` collector for a keyword and a location, waits for the run when it is queued, and returns a CSV of the places (name, category, address, phone, website, rating, coordinates, Maps link).\n\n## Setup\n1. Create an API key on the QuanticData dashboard (API keys page).\n2. In n8n: Credentials > New > **Header Auth**. Name: `QuanticData API`, header name `Authorization`, value `Bearer YOUR_KEY`.\n3. Open each orange HTTP Request node and pick that credential.\n4. Edit **Search** and run.\n\nPublic business listings only. If you contact the businesses, data protection and anti-spam rules apply to you.\n\nBilled per delivered place: https://quanticdata.io/pricing/",
+        "height": 460,
+        "width": 520,
+        "color": 5
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -420
+      ],
+      "id": "a9463810-b12b-49d9-a3f1-347214eb01ca"
+    },
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        100
+      ],
+      "id": "425b1a94-75de-4bd1-a8af-69090619c254"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d9c4c129-4d8d-4dbb-a573-154d3a0ce24d",
+              "name": "query",
+              "value": "public library",
+              "type": "string"
+            },
+            {
+              "id": "42fe4d5d-973e-4382-ad14-1fd9f9e37cf2",
+              "name": "location",
+              "value": "Brooklyn, NY",
+              "type": "string"
+            },
+            {
+              "id": "d421cd90-dc4a-47bf-a6be-8c123ad54c69",
+              "name": "country",
+              "value": "us",
+              "type": "string"
+            },
+            {
+              "id": "efb390d1-5745-4ed6-a468-0a461e9b384f",
+              "name": "max_results",
+              "value": 20,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Search",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        100
+      ],
+      "id": "73b4669d-0e4d-4deb-af65-43f733c51f8c"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.quanticdata.io/v1/scraper/collectors/google_maps_places/run",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": {\n    \"query\": \"{{ $json.query }}\",\n    \"location\": \"{{ $json.location }}\",\n    \"country\": \"{{ $json.country }}\",\n    \"max_results\": {{ $json.max_results }}\n  }\n}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "name": "Run collector",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "fef3da0b-d4ca-430a-acfd-63bea049cfd9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "900d2069-eb4c-4e04-a53e-be075bf8cdf8",
+              "leftValue": "={{ ['done', 'failed'].includes($json.payload.status) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Run finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        100
+      ],
+      "id": "653c14dc-b36e-43a8-a87b-9a9f2edd5e11"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "name": "Wait 10 s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        300
+      ],
+      "webhookId": "dee48ae5-005e-479f-ac83-89ad64bf7fc5",
+      "id": "f0b07494-56fc-4185-a7a7-fe3d38f264a1"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.quanticdata.io/v1/scraper/collectors/runs/{{ $json.payload.run_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "name": "Poll run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "8b0813c9-5d21-4e18-a16b-e6537bf49084"
+    },
+    {
+      "parameters": {
+        "jsCode": "const run = $input.first().json.payload;\nif (run.status === 'failed') {\n  throw new Error('Collector run failed: ' + (run.error || 'unknown error'));\n}\nconst columns = ['rank', 'name', 'category', 'address', 'phone', 'website', 'rating', 'reviews', 'latitude', 'longitude', 'maps_url', 'place_id'];\nreturn (run.results || []).map((row) => ({\n  json: Object.fromEntries(columns.map((c) => [c, row[c] === undefined ? null : row[c]])),\n}));"
+      },
+      "name": "Places",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "67f5aa71-2890-4344-a3b7-6be1517e32c5"
+    },
+    {
+      "parameters": {
+        "operation": "csv",
+        "options": {
+          "fileName": "=places-{{ $now.toFormat('yyyy-LL-dd') }}.csv"
+        }
+      },
+      "name": "Places CSV",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "b4f37932-d518-4665-af78-8484252429e2"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search": {
+      "main": [
+        [
+          {
+            "node": "Run collector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run collector": {
+      "main": [
+        [
+          {
+            "node": "Run finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run finished?": {
+      "main": [
+        [
+          {
+            "node": "Places",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10 s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10 s": {
+      "main": [
+        [
+          {
+            "node": "Poll run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll run": {
+      "main": [
+        [
+          {
+            "node": "Run finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Places": {
+      "main": [
+        [
+          {
+            "node": "Places CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

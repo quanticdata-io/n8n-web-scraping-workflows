@@ -1,0 +1,306 @@
+{
+  "name": "Daily Google rank check (QuanticData)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Daily Google rank check\nEvery morning, searches Google for each keyword from a fixed location, finds the first result from your domain and whether an AI Overview is shown, compares with the previous run and posts a message to a webhook when a rank changes. Also outputs a CSV of the run.\n\n## Setup\n1. Create an API key on the QuanticData dashboard (API keys page).\n2. In n8n: Credentials > New > **Header Auth**. Name: `QuanticData API`, header name `Authorization`, value `Bearer YOUR_KEY`.\n3. Open each orange HTTP Request node and pick that credential.\n4. Edit **Settings** (domain, keywords, location, webhook URL; leave the webhook empty to skip alerts).\n5. Activate the workflow: the previous ranks are kept in the workflow's static data, which n8n saves only for active (scheduled) runs, not manual test runs.\n\nOne billed search per keyword and run: https://quanticdata.io/pricing/",
+        "height": 480,
+        "width": 560,
+        "color": 5
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -420
+      ],
+      "id": "03ee8f8e-516a-4550-a230-a990dd8dc704"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "name": "Every day at 07:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        100
+      ],
+      "id": "ed75d564-5094-411d-a7d9-edb37d434ec5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1507bc9e-f3b5-406f-aea6-c1c4ad5e3abb",
+              "name": "domain",
+              "value": "wikipedia.org",
+              "type": "string"
+            },
+            {
+              "id": "3f3e79a8-b6b9-4f59-a9d7-73f46e55a1bc",
+              "name": "keywords",
+              "value": "={{ ['xml sitemap', 'robots.txt'] }}",
+              "type": "array"
+            },
+            {
+              "id": "e7dcf9ee-15db-4a2a-a3e0-e1dda9abfaa4",
+              "name": "country",
+              "value": "us",
+              "type": "string"
+            },
+            {
+              "id": "53ce4e79-69b8-4cc9-a4fd-613e648ef406",
+              "name": "lang",
+              "value": "en",
+              "type": "string"
+            },
+            {
+              "id": "2eea590a-5ec2-4ee4-a84f-300cbfff7284",
+              "name": "location",
+              "value": "New York, New York, United States",
+              "type": "string"
+            },
+            {
+              "id": "ff5cca7a-bc88-4809-a713-cc9290c5b202",
+              "name": "depth",
+              "value": 20,
+              "type": "number"
+            },
+            {
+              "id": "4c74c42e-88e5-47a8-a8df-2b37b4985054",
+              "name": "alertWebhookUrl",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        100
+      ],
+      "id": "1bcbdab8-0d19-4021-a691-277e16216585"
+    },
+    {
+      "parameters": {
+        "jsCode": "const s = $input.first().json;\nreturn s.keywords.map((keyword) => ({\n  json: { keyword, domain: s.domain, country: s.country, lang: s.lang, location: s.location, depth: s.depth },\n}));"
+      },
+      "name": "One item per keyword",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        100
+      ],
+      "id": "d6b7b15e-6c63-445a-a261-1919a9666f1a"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.quanticdata.io/v1/scraper/serp",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json.keyword }}\",\n  \"engine\": \"google\",\n  \"country\": \"{{ $json.country }}\",\n  \"lang\": \"{{ $json.lang }}\",\n  \"location\": \"{{ $json.location }}\",\n  \"num\": {{ $json.depth }}\n}",
+        "options": {
+          "timeout": 180000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 2000
+            }
+          }
+        }
+      },
+      "name": "Google search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "4af6c8d0-e7fd-4021-acba-c55c2a06d5a9"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Matches organic results on their registrable host. Google often returns its own\n// click address in \"link\", so \"source\" and \"display_link\" are read first.\nconst keywords = $('One item per keyword').all();\nconst store = $getWorkflowStaticData('global');\nstore.ranks = store.ranks || {};\n\nfunction hostOf(r) {\n  if (r.source) return r.source.toLowerCase();\n  try {\n    const h = new URL(r.link).hostname.toLowerCase();\n    if (!/(^|\\.)google\\./.test(h)) return h;\n  } catch (e) {}\n  return String(r.display_link || '').split(' ')[0].toLowerCase();\n}\nconst matches = (host, domain) => host === domain || host.endsWith('.' + domain);\n\nreturn $input.all().map((item, i) => {\n  const k = keywords[i].json;\n  const serp = item.json.payload;\n  const hit = (serp.organic || []).find((r) => matches(hostOf(r), k.domain));\n  const rank = hit ? hit.rank : null;\n  const previous = Object.prototype.hasOwnProperty.call(store.ranks, k.keyword) ? store.ranks[k.keyword] : undefined;\n  store.ranks[k.keyword] = rank;\n  const changed = previous !== undefined && previous !== rank;\n  const show = (v) => (v === null || v === undefined ? 'not in top ' + k.depth : '#' + v);\n  return {\n    json: {\n      keyword: k.keyword,\n      domain: k.domain,\n      rank,\n      previous_rank: previous === undefined ? null : previous,\n      changed,\n      url: hit ? hit.link : null,\n      results_seen: (serp.organic || []).length,\n      ai_overview: Boolean(serp.ai_overview),\n      people_also_ask: (serp.people_also_ask || []).length > 0,\n      checked_at: serp.search_metadata.created_at,\n      message: k.domain + ' for \"' + k.keyword + '\": ' + show(previous) + ' -> ' + show(rank),\n    },\n  };\n});"
+      },
+      "name": "Find the domain rank",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        100
+      ],
+      "id": "80a778ca-4db3-430f-a6dd-545d34bee9e7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0b269eb4-98ea-49b7-ad8d-fad2ecaaa6aa",
+              "leftValue": "={{ $json.changed && $('Settings').first().json.alertWebhookUrl !== '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Rank changed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "16c55f19-31ff-4a5b-a8ef-fccb1188bde8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.alertWebhookUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.message }) }}",
+        "options": {}
+      },
+      "name": "Send alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        -20
+      ],
+      "id": "a847b312-c8a5-4231-a4fe-ee474279fb8c"
+    },
+    {
+      "parameters": {
+        "operation": "csv",
+        "options": {
+          "fileName": "=ranks-{{ $now.toFormat('yyyy-LL-dd') }}.csv"
+        }
+      },
+      "name": "Rank report CSV",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        220
+      ],
+      "id": "fd31154b-e2d9-457f-ab12-bdc4baf80c55"
+    }
+  ],
+  "connections": {
+    "Every day at 07:00": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "One item per keyword",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One item per keyword": {
+      "main": [
+        [
+          {
+            "node": "Google search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google search": {
+      "main": [
+        [
+          {
+            "node": "Find the domain rank",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find the domain rank": {
+      "main": [
+        [
+          {
+            "node": "Rank changed?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Rank report CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rank changed?": {
+      "main": [
+        [
+          {
+            "node": "Send alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

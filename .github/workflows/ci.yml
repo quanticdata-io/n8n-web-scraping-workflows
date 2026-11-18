@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Every workflow file is valid JSON
+        run: for f in workflows/*.json test/fixtures/*.json test/fixtures/responses/*.json; do node -e "JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'))" "$f" || exit 1; done
+      - name: Tests
+        run: npm test
+
+  openapi:
+    name: Fixture matches the published OpenAPI file
+    runs-on: ubuntu-latest
+    # Informational: tells us when the API document changed, without failing the build.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: curl -sSfL https://quanticdata.io/docs/openapi.json -o openapi.json
+      - run: npm run openapi
+      - run: npm test
+      - run: git diff --stat --exit-code -- test/fixtures/openapi-subset.json

@@ -1,0 +1,197 @@
+{
+  "name": "URLs to Markdown files (QuanticData)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# URLs to Markdown files\nScrapes each URL with the QuanticData scrape endpoint and returns one Markdown file per page (with YAML front matter), ready to download or to pass to a storage node.\n\n## Setup\n1. Create an API key on the QuanticData dashboard (API keys page).\n2. In n8n: Credentials > New > **Header Auth**. Name: `QuanticData API`, header name `Authorization`, value `Bearer YOUR_KEY`.\n3. Open each orange HTTP Request node and pick that credential.\n4. Edit **URLs to convert** and run the workflow.\n\nBilled per successful page: https://quanticdata.io/pricing/",
+        "height": 420,
+        "width": 520,
+        "color": 5
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -360
+      ],
+      "id": "575367b5-05e8-4d48-aa2c-500282ddd53f"
+    },
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        100
+      ],
+      "id": "a2db894b-9dea-4f78-ab38-15ad391d5de7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "031b0caa-c887-473c-a086-99b700c98a64",
+              "name": "urls",
+              "value": "={{ ['https://quotes.toscrape.com/', 'https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html'] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "URLs to convert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        100
+      ],
+      "id": "435ee23d-202c-471d-acd3-a73a6654c0c3"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "urls",
+        "options": {
+          "destinationFieldName": "url"
+        }
+      },
+      "name": "One item per URL",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        440,
+        100
+      ],
+      "id": "74844dbc-ea06-44a8-a06c-7e1ea0882eea"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.quanticdata.io/v1/scraper/extract",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"format\": \"markdown\",\n  \"contentMode\": \"smart\",\n  \"frontmatter\": true\n}",
+        "options": {
+          "timeout": 180000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
+            }
+          }
+        }
+      },
+      "name": "Scrape to Markdown",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "578d2f6c-2193-45f8-a77e-e9bceed9b4f5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// One output item per scraped page: a file name and the Markdown text\nreturn $input.all().map((item) => {\n  const page = item.json.payload;\n  const u = new URL(page.finalUrl || page.url);\n  const slug = (u.hostname + u.pathname).replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();\n  return {\n    json: {\n      url: page.url,\n      title: page.title,\n      status: page.status,\n      fileName: (slug || 'page') + '.md',\n      markdown: page.content,\n    },\n  };\n});"
+      },
+      "name": "Name the file",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        100
+      ],
+      "id": "ab9845a9-d68c-44ed-a45c-caf2337b57b8"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "markdown",
+        "options": {
+          "fileName": "={{ $json.fileName }}"
+        }
+      },
+      "name": "Markdown file",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        100
+      ],
+      "id": "33ccf77b-1cd4-413e-aaa8-f7f3d961ea10"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "URLs to convert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "URLs to convert": {
+      "main": [
+        [
+          {
+            "node": "One item per URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One item per URL": {
+      "main": [
+        [
+          {
+            "node": "Scrape to Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape to Markdown": {
+      "main": [
+        [
+          {
+            "node": "Name the file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name the file": {
+      "main": [
+        [
+          {
+            "node": "Markdown file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

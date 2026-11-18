@@ -1,0 +1,361 @@
+{
+  "name": "Site to RAG chunks (QuanticData)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Site to RAG chunks (JSONL)\nDiscovers a site's URLs with the map endpoint (sitemaps and homepage links), scrapes them in one batch job, splits each page's Markdown at its headings and returns a `chunks.jsonl` file (one chunk per line with url, title and heading) for a vector store.\n\n## Setup\n1. Create an API key on the QuanticData dashboard (API keys page).\n2. In n8n: Credentials > New > **Header Auth**. Name: `QuanticData API`, header name `Authorization`, value `Bearer YOUR_KEY`.\n3. Open each orange HTTP Request node and pick that credential.\n4. Edit **Settings**: the site, an optional URL filter and a page limit. Start small.\n\nBilled per map call and per scraped page: https://quanticdata.io/pricing/",
+        "height": 460,
+        "width": 560,
+        "color": 5
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -420
+      ],
+      "id": "cfbfd99a-ea95-4140-a0e6-8b8a6c3202ee"
+    },
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        100
+      ],
+      "id": "35b757e4-9c56-4fef-ad10-ed46d188f399"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0e89f082-1648-4e06-afb0-1f07eebdb6d0",
+              "name": "site",
+              "value": "https://quotes.toscrape.com/",
+              "type": "string"
+            },
+            {
+              "id": "cc6d8fb7-abd8-45c2-a3d1-fdf1a5ba2a35",
+              "name": "search",
+              "value": "/author/",
+              "type": "string"
+            },
+            {
+              "id": "f3518b53-22bb-4320-ae84-ad97175f346c",
+              "name": "limit",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "fcc63ab7-63da-43ea-a915-35db823648c4",
+              "name": "maxChunkChars",
+              "value": 2000,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        100
+      ],
+      "id": "05cbaba2-baaa-48d5-a46c-7756b5aafe34"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.quanticdata.io/v1/scraper/map",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.site }}\",\n  \"search\": \"{{ $json.search }}\",\n  \"limit\": {{ $json.limit }}\n}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "name": "Map site",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "aba2a921-0c96-4134-a8dc-9f6b0203a874"
+    },
+    {
+      "parameters": {
+        "jsCode": "const map = $input.first().json.payload;\nconst urls = map.links || [];\nif (urls.length === 0) {\n  throw new Error('The map call found no URLs for ' + map.url + '. Check the site and the search filter.');\n}\nreturn [{ json: { urls, total_on_site: map.total } }];"
+      },
+      "name": "URLs to scrape",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        100
+      ],
+      "id": "8ed23291-f2f7-4279-a5b2-a5657863ead1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.quanticdata.io/v1/scraper/batch",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"urls\": {{ JSON.stringify($json.urls) }},\n  \"format\": \"markdown\",\n  \"contentMode\": \"smart\"\n}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "name": "Start batch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "4408f8b8-0739-4a58-a434-122ca6c755f1"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "name": "Wait 15 s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        100
+      ],
+      "webhookId": "1ff8a546-37b3-4853-a49b-287a8978c670",
+      "id": "689e00e6-bc1a-4635-aca9-a1b71f4f536e"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.quanticdata.io/v1/scraper/batch/{{ $('Start batch').first().json.payload.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "include_content",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "name": "Poll batch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "ce0f1515-31cb-4516-a55a-01038e2a5281"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4d701664-0197-426e-a9e0-373ac8c7f41b",
+              "leftValue": "={{ $json.payload.status !== 'running' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Batch finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        100
+      ],
+      "id": "0f09f884-cc72-4924-afbb-e1f9754d74d7"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Splits each page at its Markdown headings, then cuts long sections to maxChunkChars.\nconst job = $input.first().json.payload;\nconst max = $('Settings').first().json.maxChunkChars;\nconst lines = [];\nfor (const item of job.items || []) {\n  if (!item.content || item.status >= 400) continue;\n  let heading = item.title || '';\n  let buffer = [];\n  let index = 0;\n  const flush = () => {\n    const text = buffer.join('\\n').trim();\n    buffer = [];\n    for (let start = 0; start < text.length; start += max) {\n      lines.push(JSON.stringify({ url: item.url, title: item.title, heading, chunk: index++, text: text.slice(start, start + max) }));\n    }\n  };\n  for (const line of item.content.split('\\n')) {\n    const m = /^#{1,6}\\s+(.*)$/.exec(line);\n    if (m) {\n      flush();\n      heading = m[1].replace(/\\[([^\\]]*)\\]\\([^)]*\\)/g, '$1').trim();\n    }\n    buffer.push(line);\n  }\n  flush();\n}\nreturn [{\n  json: {\n    jsonl: lines.join('\\n') + '\\n',\n    chunks: lines.length,\n    pages: (job.items || []).length,\n    failed: job.failed,\n    more_items_withheld: job.hasMore,\n  },\n}];"
+      },
+      "name": "Chunk for RAG",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        0
+      ],
+      "id": "12f2d78a-af7f-4b96-a42d-134eac0402de"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "jsonl",
+        "options": {
+          "fileName": "chunks.jsonl"
+        }
+      },
+      "name": "chunks.jsonl",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1980,
+        0
+      ],
+      "id": "10d85bed-06f2-4ede-a1e2-71b7b5fd329d"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Map site",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map site": {
+      "main": [
+        [
+          {
+            "node": "URLs to scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "URLs to scrape": {
+      "main": [
+        [
+          {
+            "node": "Start batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start batch": {
+      "main": [
+        [
+          {
+            "node": "Wait 15 s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 15 s": {
+      "main": [
+        [
+          {
+            "node": "Poll batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll batch": {
+      "main": [
+        [
+          {
+            "node": "Batch finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch finished?": {
+      "main": [
+        [
+          {
+            "node": "Chunk for RAG",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 15 s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk for RAG": {
+      "main": [
+        [
+          {
+            "node": "chunks.jsonl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

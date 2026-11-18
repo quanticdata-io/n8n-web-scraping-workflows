@@ -1,0 +1,11 @@
+{
+  "type": "response",
+  "message": "Batch started",
+  "payload": {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "status": "running",
+    "total": 2,
+    "statusUrl": "/api/v1/scraper/batch/00000000-0000-4000-8000-000000000001"
+  },
+  "pagination": {}
+}

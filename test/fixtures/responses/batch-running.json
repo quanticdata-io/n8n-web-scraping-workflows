@@ -1,0 +1,18 @@
+{
+  "type": "response",
+  "message": "Batch status",
+  "payload": {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "status": "running",
+    "total": 2,
+    "completed": 1,
+    "failed": 0,
+    "contentTruncated": false,
+    "items": [],
+    "nextCursor": 0,
+    "hasMore": false,
+    "createdAt": 1795009593856,
+    "finishedAt": null
+  },
+  "pagination": {}
+}

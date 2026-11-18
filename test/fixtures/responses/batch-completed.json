@@ -1,0 +1,33 @@
+{
+  "type": "response",
+  "message": "Batch status",
+  "payload": {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "status": "completed",
+    "total": 2,
+    "completed": 2,
+    "failed": 0,
+    "contentTruncated": false,
+    "items": [
+      {
+        "url": "https://quotes.toscrape.com/author/Albert-Einstein",
+        "status": 200,
+        "title": "Quotes to Scrape",
+        "content": "# [Quotes to Scrape](https://quotes.toscrape.com/)\n\n### Albert Einstein\n\n**Born:** March 14, 1879 in Ulm, Germany\n\n**Description:**\n\nIn 1879, Albert Einstein was born in Ulm, Germany.",
+        "engine": "tls"
+      },
+      {
+        "url": "https://quotes.toscrape.com/author/Jane-Austen",
+        "status": 200,
+        "title": "Quotes to Scrape",
+        "content": "# [Quotes to Scrape](https://quotes.toscrape.com/)\n\n### Jane Austen\n\n**Born:** December 16, 1775 in Steventon Rectory, Hampshire, The United Kingdom",
+        "engine": "tls"
+      }
+    ],
+    "nextCursor": 2,
+    "hasMore": false,
+    "createdAt": 1795009593856,
+    "finishedAt": 1795009598277
+  },
+  "pagination": {}
+}

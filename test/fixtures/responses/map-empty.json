@@ -1,0 +1,20 @@
+{
+  "type": "response",
+  "message": "Map successful",
+  "payload": {
+    "url": "https://quotes.toscrape.com/",
+    "links": [],
+    "count": 0,
+    "total": 47,
+    "summary": {},
+    "sources": {
+      "sitemap": 0,
+      "homepage": 47
+    },
+    "durationMs": 900,
+    "geo": {
+      "country": null
+    }
+  },
+  "pagination": {}
+}
